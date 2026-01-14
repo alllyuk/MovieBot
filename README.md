@@ -49,7 +49,7 @@ src/
 2. Отправьте команду `/newbot`
 3. Придумайте имя для бота (например, "Movie Night Bot")
 4. Придумайте username (должен заканчиваться на `bot`, например `my_movie_night_bot`)
-5. BotFather пришлёт токен вида `123456789:ABCdefGHIjklMNOpqrsTUVwxyz` — сохраните его
+5. BotFather пришлёт токен — сохраните его
 
 ### 2. Клонирование репозитория
 
@@ -92,10 +92,10 @@ copy .env.example .env
 cp .env.example .env
 ```
 
-Откройте файл `.env` в текстовом редакторе и замените `your_telegram_bot_token_here` на токен от BotFather:
+Откройте файл `.env` в текстовом редакторе и вставьте токен от BotFather:
 
 ```
-BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
+BOT_TOKEN=ваш_токен_от_BotFather
 ```
 
 ### 6. Запуск бота

@@ -1,90 +1,90 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with this repository.
+Документ описывает процесс разработки MovieBot с использованием AI-ассистента (Claude Code).
 
-## Project Overview
+## О проекте
 
-**Project**: MovieBot
-**Status**: Initial setup, BDD-first development
-**Stack**: Python 3.10+ with pytest-bdd for BDD testing
+**MovieBot** — Telegram-бот для совместного выбора фильмов. Помогает парам и семьям вести списки желаемых фильмов, находить пересечения и выбирать что посмотреть вместе.
 
-## Project Requirements
+## Подход к разработке
 
-- [ ] GitHub repository
-- [ ] README with description and run instructions
-- [ ] CLAUDE.md describing AI collaboration
-- [ ] BDD .feature files (pytest-bdd)
-- [ ] Tests run and pass
-- [ ] Every new feature has own commit
-- [ ] MVP works and solves the problem
+### BDD-First (Behavior-Driven Development)
 
-## Core Principles
+Весь проект разрабатывался по принципу "тесты до кода":
 
-### BDD-First Development
-1. Write .feature files FIRST
-2. Generate step definitions
-3. Implement code to pass tests
-4. Commit frequently (every 15-20 min)
+1. **Сначала .feature файлы** — описание поведения на человеческом языке
+2. **Затем step definitions** — связывание сценариев с кодом
+3. **Потом реализация** — код, который проходит тесты
 
-### Simplicity First
-- Write straightforward, readable code
-- Prefer clarity over cleverness
-- Minimal changes focused on current task
-- Early returns to avoid nesting
-- DRY - don't repeat yourself
+Это позволило:
+- Иметь чёткую спецификацию до написания кода
+- Не писать лишний функционал
+- Сразу видеть, когда фича готова
 
-### Before Any Code Changes
-1. Read and understand existing code first
-2. Never modify code you haven't read
-3. Check existing patterns and conventions
+### Роль AI в разработке
 
-## Commit Rules
+Claude Code использовался как **соавтор**, а не просто генератор кода:
 
-- Atomic commits - one logical change per commit
-- Conventional format: `type(scope): description`
-- Examples:
-  - `feat(bot): add movie search`
-  - `test(search): add search scenarios`
-  - `docs(readme): add setup instructions`
+- **Обсуждение архитектуры** — выбор слоёв (handlers → services → repositories)
+- **Написание BDD сценариев** — формулировка на русском языке
+- **Генерация кода** — по готовым спецификациям
+- **Отладка** — поиск и исправление проблем с кодировкой, aiogram API
+- **Рефакторинг** — улучшение качества без изменения поведения
 
-## Commands Reference
+### Принципы работы с AI
+
+1. **Описывать задачу, не решение** — "нужен выбор фильма из пересечения списков", а не "сделай функцию X"
+2. **Итеративность** — маленькие шаги с проверкой после каждого
+3. **Контроль качества** — AI предлагает, человек проверяет и одобряет
+4. **Понятный код** — простота важнее "умных" решений
+
+## Эволюция проекта
+
+| Этап | Коммиты | Что сделано |
+|------|---------|-------------|
+| Инициализация | 1-2 | Структура проекта, зависимости |
+| Спецификация | 3 | BDD сценарии для всего MVP |
+| База данных | 4-5 | Схема SQLite, репозитории |
+| Бизнес-логика | 6 | Сервисы: wishlist, selection, history |
+| Тесты | 7-8 | Step definitions, фикстуры |
+| Telegram | 9-11 | Обработчики команд, запуск бота |
+| Улучшения | 12-18 | UX, клавиатура, баги, качество тестов |
+
+## Структура кода
+
+```
+src/
+├── bot/
+│   ├── handlers.py      # Тонкий слой — только парсинг и ответы
+│   └── messages.py      # Текстовые сообщения бота
+├── services/
+│   ├── wishlist_service.py    # Управление списками
+│   ├── selection_service.py   # Выбор фильма
+│   └── history_service.py     # История просмотров
+├── database/
+│   ├── schema.py        # DDL для SQLite
+│   ├── connection.py    # Подключение к БД
+│   └── repositories.py  # CRUD операции
+└── main.py              # Точка входа
+```
+
+## Команды
 
 ```bash
-# Install dependencies
+# Установка
 pip install -r requirements.txt
 
-# Run all BDD tests
+# Тесты
 pytest tests/ -v
 
-# Run specific feature
-pytest tests/ -v -k "feature_name"
-
-# Run with coverage
-pytest tests/ --cov=src
+# Запуск бота
+python -m src.main
 ```
 
-## Project Structure
+## Выводы
 
-```
-MovieBot/
-├── README.md           # Description + how to run
-├── CLAUDE.md           # AI collaboration notes
-├── requirements.txt    # Dependencies
-├── src/
-│   └── ...            # Application code
-├── tests/
-│   ├── features/      # BDD .feature files
-│   └── steps/         # Step definitions
-└── .gitignore
-```
-
-## AI Collaboration Log
-
-### Session 1 (2026-01-14)
-- Initial project setup
-- Created project structure
-- BDD scenarios pending from user
-
----
-
-*Update this file as project evolves*
+Vibe Coding с AI эффективен когда:
+- Есть чёткое понимание, что нужно построить
+- Используется BDD для фиксации требований
+- Работа идёт итеративно с частыми коммитами
+- Человек остаётся "водителем", AI — "штурманом"
