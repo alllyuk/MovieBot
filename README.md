@@ -41,31 +41,76 @@ src/
 └── utils/           # Парсер команд, форматирование дат
 ```
 
-## Установка
+## Установка и запуск
+
+### 1. Создание бота в Telegram
+
+1. Откройте Telegram и найдите [@BotFather](https://t.me/BotFather)
+2. Отправьте команду `/newbot`
+3. Придумайте имя для бота (например, "Movie Night Bot")
+4. Придумайте username (должен заканчиваться на `bot`, например `my_movie_night_bot`)
+5. BotFather пришлёт токен вида `123456789:ABCdefGHIjklMNOpqrsTUVwxyz` — сохраните его
+
+### 2. Клонирование репозитория
 
 ```bash
-# Клонировать репозиторий
-git clone https://github.com/YOUR_USERNAME/MovieBot.git
+git clone https://github.com/alllyuk/MovieBot.git
 cd MovieBot
-
-# Создать виртуальное окружение
-python -m venv venv
-venv\Scripts\activate     # Windows
-source venv/bin/activate  # Linux/Mac
-
-# Установить зависимости
-pip install -r requirements.txt
-
-# Настроить токен бота
-cp .env.example .env
-# Отредактировать .env и добавить BOT_TOKEN
 ```
 
-## Запуск
+### 3. Создание виртуального окружения
+
+**Windows:**
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+**Linux/Mac:**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+После активации в начале строки терминала появится `(.venv)`.
+
+### 4. Установка зависимостей
+
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Настройка переменных окружения
+
+**Windows:**
+```bash
+copy .env.example .env
+```
+
+**Linux/Mac:**
+```bash
+cp .env.example .env
+```
+
+Откройте файл `.env` в текстовом редакторе и замените `your_telegram_bot_token_here` на токен от BotFather:
+
+```
+BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
+```
+
+### 6. Запуск бота
 
 ```bash
 python -m src.main
 ```
+
+Если всё настроено правильно, вы увидите:
+```
+INFO - Initializing database at moviebot.db
+INFO - Starting MovieBot...
+```
+
+Теперь найдите вашего бота в Telegram и отправьте `/start`!
 
 ## Тестирование
 
