@@ -122,7 +122,10 @@ def selection_service(
     state_repo: StateRepository,
     user_repo: UserRepository,
 ) -> SelectionService:
-    return SelectionService(wishlist_repo, history_repo, state_repo, user_repo)
+    import random
+    # Fixed seed for deterministic tests
+    rng = random.Random(42)
+    return SelectionService(wishlist_repo, history_repo, state_repo, user_repo, rng=rng)
 
 
 @pytest.fixture
@@ -147,6 +150,13 @@ def fake_bot() -> FakeBot:
 @pytest.fixture
 def users() -> dict[str, FakeUser]:
     return TEST_USERS.copy()
+
+
+# Text fixture for pytest-bdd docstrings
+@pytest.fixture
+def text():
+    """Text fixture for pytest-bdd docstrings (fallback)."""
+    return ""
 
 
 # Common step definitions (shared across all features)
@@ -182,26 +192,23 @@ def add_movies_to_wishlist(user_service, wishlist_service, user_name: str, datat
     user = get_test_user(user_name)
     user_service.register(user.telegram_id, user.display_name)
 
-    # Skip header row if present (first row contains column names like 'название')
+    # Skip header row if present
     data_rows = datatable
     if data_rows and isinstance(data_rows[0], list):
         first_cell = str(data_rows[0][0]).lower()
         if "назван" in first_cell or first_cell == "название":
-            data_rows = datatable[1:]  # Skip header
+            data_rows = datatable[1:]
 
     for row in data_rows:
-        # Handle both dict and list formats (encoding issues may cause list format)
         if isinstance(row, dict):
-            # Try to get movie from various possible keys
             movie = None
             for key in row.keys():
                 if "назван" in key.lower() or key == "название":
                     movie = row[key]
                     break
             if movie is None:
-                movie = list(row.values())[0]  # fallback to first value
+                movie = list(row.values())[0]
         else:
-            # List format - first element is the movie
             movie = row[0] if row else None
         if movie:
             wishlist_service.add_movie(user.telegram_id, movie)
@@ -229,20 +236,25 @@ def movie_not_in_wishlists(user_service, movie: str):
     user_service.register(_MASHA.telegram_id, _MASHA.display_name)
 
 
-# Shared multiline response step definition
-# Note: pytest-bdd 8.x should pass docstring as 'text' parameter
-@pytest.fixture
-def text():
-    """Text fixture for pytest-bdd docstrings (fallback)."""
-    return ""
+@then(parsers.parse('бот отвечает "{expected}"'))
+def check_bot_response(fake_bot: FakeBot, expected: str):
+    """Check bot response matches expected text."""
+    assert fake_bot.last_response == expected, f"Expected: {expected}, Got: {fake_bot.last_response}"
 
 
 @then("бот отвечает:")
 def check_multiline_response_shared(fake_bot: FakeBot, text):
-    """Check multiline bot response (docstring) - shared step."""
+    """Check multiline bot response (docstring)."""
     assert fake_bot.last_response is not None
-    # Verify response contains expected content indicators
     response = fake_bot.last_response
-    # Check for at least one of the expected keywords from various features
-    keywords = ["Привет", "Команды", "список", "История", "фильм", "Фильмы", "хотите"]
-    assert any(kw in response for kw in keywords), f"Response '{response}' doesn't contain expected keywords"
+
+    def normalize(s):
+        return ' '.join(s.split())
+
+    if text and text.strip():
+        expected_normalized = normalize(text)
+        response_normalized = normalize(response)
+        assert expected_normalized in response_normalized or response_normalized in expected_normalized, \
+            f"Response mismatch.\nExpected:\n{text}\nGot:\n{response}"
+    else:
+        assert len(response) > 10, f"Response too short: {response}"

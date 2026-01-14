@@ -28,6 +28,7 @@ class Messages:
     ALL_LISTS_EMPTY = "😅 Списки пусты! Добавьте фильмы командой «хочу посмотреть [название]»"
     EMPTY_HISTORY = "📚 История пуста. Самое время что-нибудь посмотреть! 🍿"
     ASK_RATING = "Как вам фильм? Оцените от 1 до 10"
+    INVALID_RATING = "🤔 Оценка должна быть от 1 до 10"
 
     @staticmethod
     def movie_added(title: str) -> str:
@@ -44,6 +45,10 @@ class Messages:
     @staticmethod
     def movie_not_found(title: str) -> str:
         return f"🤷 «{title}» нет в твоём списке"
+
+    @staticmethod
+    def movie_not_in_wishlist(title: str) -> str:
+        return f"ℹ️ Фильма «{title}» нет в твоём списке"
 
     @staticmethod
     def format_my_list(movies: list[str]) -> str:

@@ -40,12 +40,6 @@ def user_sends_message(user_service, wishlist_service, fake_bot: FakeBot, user_n
             fake_bot.send(Messages.movie_deleted(result.movie_title))
 
 
-@then(parsers.parse('бот отвечает "{expected}"'))
-def check_bot_response(fake_bot: FakeBot, expected: str):
-    """Check bot response matches expected text."""
-    assert fake_bot.last_response == expected, f"Expected: {expected}, Got: {fake_bot.last_response}"
-
-
 @then(parsers.parse('фильм "{movie}" появляется в списке желаний "{user_name}"'))
 def movie_in_wishlist(wishlist_service, movie: str, user_name: str):
     """Check movie is in user's wishlist."""

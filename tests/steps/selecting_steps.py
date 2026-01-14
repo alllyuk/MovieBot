@@ -26,52 +26,63 @@ def user_asks_what_to_watch(user_service, selection_service, fake_bot: FakeBot, 
         fake_bot.send(Messages.movie_selected_random(result.movie))
 
 
-@then(parsers.parse('бот отвечает "{expected}"'))
-def check_response(fake_bot: FakeBot, expected: str):
-    """Check bot response - lenient matching due to encoding issues."""
-    assert fake_bot.last_response is not None
-    # For exact match scenarios, check key content instead
-    response = fake_bot.last_response
-    # Extract key identifiers from expected string
-    if "🎬" in expected:
-        assert "🎬" in response or "хотите посмотреть" in response
-    elif "🎲" in expected:
-        assert "🎲" in response or "случайный" in response
-    elif "😅" in expected:
-        assert "😅" in response or "пусты" in response
-    else:
-        # Check if key words from expected are in response
-        key_words = [w for w in expected.split() if len(w) > 3]
-        assert any(kw in response for kw in key_words[:3]) if key_words else True
-
-
 @then("бот выбирает случайный фильм из общего списка")
-def bot_picks_random(fake_bot: FakeBot):
-    """Bot picks a random movie - just check response exists."""
+def bot_picks_random(fake_bot: FakeBot, wishlist_service):
+    """Bot picks a random movie from the combined pool."""
     assert fake_bot.last_response is not None
-    # Accept either random selection or intersection result
-    assert "🎲" in fake_bot.last_response or "🎬" in fake_bot.last_response
+    assert "🎲" in fake_bot.last_response, f"Expected random selection indicator, got: {fake_bot.last_response}"
+    # Verify the selected movie is from the available pool
+    all_movies = wishlist_service.get_all_movies()
+    all_movies_lower = [m.lower() for m in all_movies]
+    # Extract movie name from response (format: «MovieName»)
+    import re
+    match = re.search(r"«(.+?)»", fake_bot.last_response)
+    assert match, f"Could not find movie name in response: {fake_bot.last_response}"
+    selected_movie = match.group(1)
+    assert selected_movie.lower() in all_movies_lower, f"Selected movie '{selected_movie}' not in pool: {all_movies}"
 
 
 @then(parsers.parse('бот выбирает случайный фильм из списка "{user_name}"'))
-def bot_picks_from_user(fake_bot: FakeBot, user_name: str):
+def bot_picks_from_user(fake_bot: FakeBot, wishlist_service, user_name: str):
     """Bot picks from specific user's list."""
     assert fake_bot.last_response is not None
+    assert "🎲" in fake_bot.last_response, f"Expected random selection, got: {fake_bot.last_response}"
+    # Verify selected movie exists in pool
+    import re
+    match = re.search(r"«(.+?)»", fake_bot.last_response)
+    assert match, f"Could not find movie name in response: {fake_bot.last_response}"
+    selected_movie = match.group(1)
+    all_movies = wishlist_service.get_all_movies()
+    assert selected_movie in all_movies, f"Selected movie '{selected_movie}' not found in wishlists"
 
 
 @then(parsers.parse('бот отвечает "🎲 Пересечений нет, выбираю случайный: «{movie}»"'))
-def check_random_selection(fake_bot: FakeBot, movie: str):
-    """Check random selection message - movie can be anything from pool."""
+def check_random_selection(fake_bot: FakeBot, wishlist_service, movie: str):
+    """Check random selection message - verify movie is from available pool."""
     assert fake_bot.last_response is not None
-    # Accept either random selection or intersection result (encoding may cause issues)
-    assert "🎲" in fake_bot.last_response or "🎬" in fake_bot.last_response or "выбираю" in fake_bot.last_response or "хотите" in fake_bot.last_response
+    assert "🎲" in fake_bot.last_response, f"Expected 🎲 indicator, got: {fake_bot.last_response}"
+    # Extract actual selected movie
+    import re
+    match = re.search(r"«(.+?)»", fake_bot.last_response)
+    assert match, f"Could not find movie name in response"
+    selected = match.group(1)
+    # Verify movie is from the pool
+    all_movies = wishlist_service.get_all_movies()
+    assert selected in all_movies, f"Selected '{selected}' not in pool: {all_movies}"
 
 
 @then(parsers.parse('бот отвечает "🎲 У {user_name} список пуст, выбираю из списка {other_name}: «{movie}»"'))
-def check_from_other_selection(fake_bot: FakeBot, user_name: str, other_name: str, movie: str):
+def check_from_other_selection(fake_bot: FakeBot, wishlist_service, user_name: str, other_name: str, movie: str):
     """Check selection from other user's list."""
     assert fake_bot.last_response is not None
-    # The actual movie name may vary, just check the pattern
+    assert "🎲" in fake_bot.last_response, f"Expected 🎲 indicator, got: {fake_bot.last_response}"
+    # Extract and verify selected movie
+    import re
+    match = re.search(r"«(.+?)»", fake_bot.last_response)
+    assert match, f"Could not find movie name in response"
+    selected = match.group(1)
+    all_movies = wishlist_service.get_all_movies()
+    assert selected in all_movies, f"Selected '{selected}' not in available movies: {all_movies}"
 
 
 # Additional tests for selection logic

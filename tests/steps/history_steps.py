@@ -1,13 +1,28 @@
 # -*- coding: utf-8 -*-
 """Step definitions for history.feature."""
 
+import pytest
 from pytest_bdd import scenarios, given, when, then, parsers
 from datetime import date
+from freezegun import freeze_time
 from src.bot.messages import Messages
 from src.services.history_service import HistoryService
 from tests.conftest import FakeUser, FakeBot, get_test_user, _ANDREY
 
 scenarios("../features/history.feature")
+
+
+# Store frozen time context for use across steps
+_frozen_time_ctx = None
+
+
+@given(parsers.parse('текущая дата "{date_str}"'))
+def set_current_date(date_str: str, request):
+    """Freeze time to specific date for deterministic tests."""
+    global _frozen_time_ctx
+    freezer = freeze_time(date_str)
+    _frozen_time_ctx = freezer.start()
+    request.addfinalizer(freezer.stop)
 
 
 @given(parsers.parse('в истории просмотров есть фильмы:'))
@@ -68,10 +83,4 @@ def user_asks_history(user_service, history_service, fake_bot: FakeBot, user_nam
         fake_bot.send("\n".join(lines))
 
 
-@then(parsers.parse('бот отвечает "{expected}"'))
-def check_history_response(fake_bot: FakeBot, expected: str):
-    """Check bot response."""
-    assert fake_bot.last_response == expected
-
-
-# Multiline response step defined in conftest.py
+# Step 'бот отвечает "{expected}"' defined in conftest.py

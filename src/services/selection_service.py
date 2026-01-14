@@ -30,11 +30,13 @@ class SelectionService:
         history_repo: HistoryRepository,
         state_repo: StateRepository,
         user_repo: UserRepository,
+        rng: random.Random = None,
     ):
         self.wishlist_repo = wishlist_repo
         self.history_repo = history_repo
         self.state_repo = state_repo
         self.user_repo = user_repo
+        self.rng = rng or random.Random()
 
     def pick_movie(self, telegram_id: int) -> SelectionResult:
         """Pick a movie for the evening."""
@@ -68,7 +70,7 @@ class SelectionService:
             pool = [m for m in pool if m.lower() != last.lower()]
 
         # 6. Random pick
-        selected = random.choice(pool)
+        selected = self.rng.choice(pool)
 
         # 7. Save as last selected
         self.state_repo.set(self.LAST_SELECTED_KEY, selected)

@@ -56,12 +56,6 @@ def user_presses_button(user_service, watch_service, fake_bot: FakeBot, user_nam
         fake_bot.send(Messages.movie_watched("Дюна 2", rating))
 
 
-@then(parsers.parse('бот отвечает "{expected}"'))
-def check_response_watching(fake_bot: FakeBot, expected: str):
-    """Check bot response."""
-    assert fake_bot.last_response == expected
-
-
 @then('бот показывает инлайн-кнопки с цифрами от 1 до 10')
 def check_rating_buttons(fake_bot: FakeBot):
     """Check that rating prompt was sent."""

@@ -35,6 +35,16 @@ def user_sends_edge_case_message(
             else:
                 fake_bot.send(Messages.movie_added(result.movie_title))
 
+    elif message_lower.startswith("удали"):
+        movie_name = message[len("удали"):].strip()
+        from src.services.wishlist_service import capitalize_title
+        movie_title = capitalize_title(movie_name)
+        result = wishlist_service.delete_movie(user.telegram_id, movie_name)
+        if result.deleted:
+            fake_bot.send(Messages.movie_deleted(result.movie_title))
+        else:
+            fake_bot.send(Messages.movie_not_in_wishlist(movie_title))
+
     elif message_lower.startswith("посмотрели"):
         text = message[len("посмотрели"):].strip()
         # Rating requires comma before number OR /10 suffix
@@ -42,6 +52,11 @@ def user_sends_edge_case_message(
         if match:
             movie_name = match.group(1).strip()
             rating = int(match.group(2))
+
+            # Validate rating range
+            if rating < 1 or rating > 10:
+                fake_bot.send(Messages.INVALID_RATING)
+                return
 
             all_movies = wishlist_service.get_all_movies()
             original_title = movie_name
@@ -58,13 +73,9 @@ def user_sends_edge_case_message(
         fake_bot.send(Messages.UNKNOWN_COMMAND)
 
 
-@then(parsers.parse('бот отвечает "{expected}"'))
-def check_edge_case_response(fake_bot: FakeBot, expected: str):
-    """Check bot response."""
-    assert fake_bot.last_response == expected
-
-
 @then("бот находит фильм несмотря на разный регистр")
-def bot_finds_case_insensitive():
-    """Case-insensitive search is handled in the when step."""
-    pass
+def bot_finds_case_insensitive(fake_bot: FakeBot):
+    """Verify case-insensitive match by checking archived response."""
+    assert fake_bot.last_response is not None
+    # Response should confirm movie was archived with original case
+    assert "в архиве" in fake_bot.last_response or "Оппенгеймер" in fake_bot.last_response
