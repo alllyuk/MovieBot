@@ -1,57 +1,82 @@
 # MovieBot
 
-> AI-assisted movie recommendation bot
+Telegram-бот для выбора фильмов на вечер. Помогает парам/семьям вести списки желаемых фильмов и выбирать что посмотреть вместе.
 
-## Description
+## Возможности
 
-[TODO: Add project description after BDD scenarios]
+- Каждый ведёт свой список "хочу посмотреть"
+- Бот находит пересечение списков (фильмы которые хотят все)
+- Случайный выбор из пересечения или общего списка
+- История просмотров с оценками
+- Умный выбор: не предлагает просмотренные и не повторяет последний
 
-## Installation
+## Команды
+
+| Команда | Описание |
+|---------|----------|
+| `/start` | Начать работу с ботом |
+| `/help` | Показать справку |
+| `хочу посмотреть [название]` | Добавить фильм |
+| `мой список` | Показать свой список |
+| `наш список` | Фильмы которые хотят все |
+| `что смотрим?` | Выбрать фильм на вечер |
+| `посмотрели [название], [оценка]` | Отметить просмотр |
+| `история` | История просмотров |
+| `удали [название]` | Удалить из списка |
+
+## Технический стек
+
+- **Python 3.10+**
+- **aiogram 3.x** - Telegram Bot API
+- **SQLite** - хранение данных
+- **pytest-bdd** - BDD тестирование
+
+## Архитектура
+
+```
+src/
+├── bot/handlers/    # Обработчики команд (тонкий слой)
+├── services/        # Бизнес-логика (без зависимости от Telegram)
+├── database/        # SQLite + репозитории
+└── utils/           # Парсер команд, форматирование дат
+```
+
+## Установка
 
 ```bash
-# Clone repository
+# Клонировать репозиторий
 git clone https://github.com/YOUR_USERNAME/MovieBot.git
 cd MovieBot
 
-# Create virtual environment
+# Создать виртуальное окружение
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
+source venv/bin/activate  # Linux/Mac
 
-# Install dependencies
+# Установить зависимости
 pip install -r requirements.txt
+
+# Настроить токен бота
+cp .env.example .env
+# Отредактировать .env и добавить BOT_TOKEN
 ```
 
-## Running the Application
+## Запуск
 
 ```bash
-python src/main.py
+python -m src.main
 ```
 
-## Running Tests
+## Тестирование
 
 ```bash
-# Run all tests
+# Все тесты
 pytest tests/ -v
 
-# Run with coverage
+# С покрытием
 pytest tests/ --cov=src
 ```
 
-## Project Structure
-
-```
-MovieBot/
-├── README.md           # This file
-├── CLAUDE.md           # AI collaboration notes
-├── requirements.txt    # Dependencies
-├── src/                # Application code
-├── tests/
-│   ├── features/       # BDD .feature files
-│   └── steps/          # Step definitions
-└── .gitignore
-```
-
-## License
+## Лицензия
 
 MIT
