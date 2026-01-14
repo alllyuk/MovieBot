@@ -5,6 +5,7 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from src.config import BOT_TOKEN, DB_PATH
@@ -66,7 +67,7 @@ async def main():
     history_service = HistoryService(history_repo)
 
     # Initialize bot and dispatcher
-    bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
+    bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
 
     # Register routers (order matters - fallback should be last)
