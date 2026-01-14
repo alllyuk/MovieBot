@@ -42,6 +42,10 @@ class Messages:
         return f"🗑 Удалил «{title}» из твоего списка"
 
     @staticmethod
+    def movie_not_found(title: str) -> str:
+        return f"🤷 «{title}» нет в твоём списке"
+
+    @staticmethod
     def format_my_list(movies: list[str]) -> str:
         if not movies:
             return Messages.EMPTY_WISHLIST

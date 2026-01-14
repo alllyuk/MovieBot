@@ -65,3 +65,5 @@ async def delete_movie(
     result = wishlist_service.delete_movie(message.from_user.id, movie_name)
     if result.deleted:
         await message.answer(Messages.movie_deleted(result.movie_title))
+    else:
+        await message.answer(Messages.movie_not_found(result.movie_title))
