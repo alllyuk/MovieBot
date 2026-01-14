@@ -36,12 +36,20 @@ class WishlistService:
         if not user:
             raise ValueError(f"User with telegram_id {telegram_id} not found")
 
-        # Capitalize first letter
-        movie_title = capitalize_title(movie_title)
-
+        # Check if user already has this movie
         existing = self.wishlist_repo.find_by_title(user.id, movie_title)
         if existing:
             return AddMovieResult(movie_title=existing.movie_title, already_exists=True)
+
+        # Use existing title from any wishlist for consistent case
+        all_movies = self.wishlist_repo.get_all_movies()
+        for m in all_movies:
+            if m.lower() == movie_title.lower():
+                movie_title = m  # Use existing case
+                break
+        else:
+            # No existing movie found - capitalize
+            movie_title = capitalize_title(movie_title)
 
         item = self.wishlist_repo.add(user.id, movie_title)
         return AddMovieResult(movie_title=item.movie_title, already_exists=False)
