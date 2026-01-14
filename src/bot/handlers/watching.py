@@ -29,8 +29,9 @@ async def mark_watched(
 
     # Rating requires comma before number OR /10 suffix
     # This prevents "Дюна 2" from being parsed as rating=2
-    match = re.match(r"(.+?),\s*(\d+)(?:/10)?$", text) or re.match(
-        r"(.+?)\s+(\d+)/10$", text
+    # Also handles optional word "оценка" before the number
+    match = re.match(r"(.+?),\s*(?:оценка\s*)?(\d+)(?:/10)?$", text, re.IGNORECASE) or re.match(
+        r"(.+?)\s+(?:оценка\s*)?(\d+)/10$", text, re.IGNORECASE
     )
 
     if match:

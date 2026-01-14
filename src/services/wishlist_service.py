@@ -16,6 +16,13 @@ class DeleteMovieResult:
     deleted: bool
 
 
+def capitalize_title(title: str) -> str:
+    """Capitalize first letter of movie title, preserve rest."""
+    if not title:
+        return title
+    return title[0].upper() + title[1:]
+
+
 class WishlistService:
     """Business logic for wishlist operations."""
 
@@ -28,6 +35,9 @@ class WishlistService:
         user = self.user_repo.get_by_telegram_id(telegram_id)
         if not user:
             raise ValueError(f"User with telegram_id {telegram_id} not found")
+
+        # Capitalize first letter
+        movie_title = capitalize_title(movie_title)
 
         existing = self.wishlist_repo.find_by_title(user.id, movie_title)
         if existing:

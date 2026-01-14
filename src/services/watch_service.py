@@ -8,6 +8,7 @@ from src.database.repositories import (
     WishlistRepository,
     HistoryRepository,
 )
+from src.services.wishlist_service import capitalize_title
 
 
 @dataclass
@@ -70,4 +71,5 @@ class WatchService:
         for m in all_movies:
             if m.lower() == movie_title.lower():
                 return m
-        return movie_title  # Return as-is if not found
+        # Capitalize if not found in wishlists
+        return capitalize_title(movie_title)
