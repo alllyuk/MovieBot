@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Inline keyboards for the bot."""
+"""Keyboards for the bot."""
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+)
 
 
 def rating_keyboard() -> InlineKeyboardMarkup:
     """Create inline keyboard with rating buttons 1-10."""
-    buttons = []
     # First row: 1-5
     row1 = [
         InlineKeyboardButton(text=str(i), callback_data=f"rate:{i}")
@@ -18,3 +22,21 @@ def rating_keyboard() -> InlineKeyboardMarkup:
         for i in range(6, 11)
     ]
     return InlineKeyboardMarkup(inline_keyboard=[row1, row2])
+
+
+def main_keyboard() -> ReplyKeyboardMarkup:
+    """Create persistent keyboard with main commands."""
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [
+                KeyboardButton(text="📋 Мой список"),
+                KeyboardButton(text="💑 Наш список"),
+            ],
+            [
+                KeyboardButton(text="🎲 Что смотрим?"),
+                KeyboardButton(text="📚 История"),
+            ],
+        ],
+        resize_keyboard=True,
+        input_field_placeholder="Или напиши: хочу посмотреть [фильм]",
+    )

@@ -10,7 +10,7 @@ from src.services import UserService, HistoryService
 router = Router()
 
 
-@router.message(F.text.lower() == "история")
+@router.message(F.text.lower().in_({"история", "📚 история"}))
 async def show_history(
     message: Message, user_service: UserService, history_service: HistoryService
 ):

@@ -29,7 +29,7 @@ async def add_movie(
         await message.answer(Messages.movie_added(result.movie_title))
 
 
-@router.message(F.text.lower() == "мой список")
+@router.message(F.text.lower().in_({"мой список", "📋 мой список"}))
 async def my_list(
     message: Message, user_service: UserService, wishlist_service: WishlistService
 ):
@@ -40,7 +40,7 @@ async def my_list(
     await message.answer(Messages.format_my_list(movies))
 
 
-@router.message(F.text.lower() == "наш список")
+@router.message(F.text.lower().in_({"наш список", "💑 наш список"}))
 async def our_list(
     message: Message, user_service: UserService, wishlist_service: WishlistService
 ):

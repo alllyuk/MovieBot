@@ -6,6 +6,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from src.bot.messages import Messages
+from src.bot.keyboards import main_keyboard
 from src.services import UserService
 
 router = Router()
@@ -15,7 +16,7 @@ router = Router()
 async def cmd_start(message: Message, user_service: UserService):
     """Handle /start command - register user and send welcome."""
     user_service.register(message.from_user.id, message.from_user.full_name)
-    await message.answer(Messages.WELCOME)
+    await message.answer(Messages.WELCOME, reply_markup=main_keyboard())
 
 
 @router.message(Command("help"))

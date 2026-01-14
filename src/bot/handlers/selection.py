@@ -10,7 +10,7 @@ from src.services import UserService, SelectionService
 router = Router()
 
 
-@router.message(F.text.lower().startswith("что смотрим"))
+@router.message(F.text.lower().regexp(r"^(🎲\s*)?что смотрим"))
 async def what_to_watch(
     message: Message, user_service: UserService, selection_service: SelectionService
 ):
