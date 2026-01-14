@@ -1,1 +1,1 @@
-# Step definitions
+# Step definitions package
