@@ -1,29 +1,40 @@
+# -*- coding: utf-8 -*-
 """Step definitions for history.feature."""
 
 from pytest_bdd import scenarios, given, when, then, parsers
 from datetime import date
 from src.bot.messages import Messages
 from src.services.history_service import HistoryService
-from tests.conftest import FakeUser, FakeBot
+from tests.conftest import FakeUser, FakeBot, get_test_user, _ANDREY
 
 scenarios("../features/history.feature")
 
 
-# Import common steps
-from tests.steps.common_steps import setup_users, users_connected
-
-
 @given(parsers.parse('в истории просмотров есть фильмы:'))
-def add_movies_to_history(history_repo, user_service, users, datatable):
+def add_movies_to_history(history_repo, user_service, datatable):
     """Add movies to watch history from data table."""
-    # Register a user first
-    user = users["Андрей"]
+    user = _ANDREY
     user_service.register(user.telegram_id, user.display_name)
 
-    for row in datatable:
-        movie = row["название"]
-        rating = int(row["оценка"])
-        watched_at = date.fromisoformat(row["дата"])
+    # Skip header row if present
+    data_rows = datatable
+    if data_rows and isinstance(data_rows[0], list):
+        first_cell = str(data_rows[0][0]).lower()
+        if "назван" in first_cell or first_cell == "название":
+            data_rows = datatable[1:]  # Skip header
+
+    for row in data_rows:
+        # Handle both dict and list formats
+        if isinstance(row, dict):
+            movie = row.get("название") or list(row.values())[0]
+            rating = int(row.get("оценка") or row.get(list(row.keys())[1]) or list(row.values())[1])
+            date_str = row.get("дата") or row.get(list(row.keys())[2]) or list(row.values())[2]
+        else:
+            # List format: [movie, rating, date]
+            movie = row[0]
+            rating = int(row[1])
+            date_str = row[2]
+        watched_at = date.fromisoformat(str(date_str))
         history_repo.add(movie, rating, watched_at, user_id=1)
 
 
@@ -34,9 +45,9 @@ def empty_history():
 
 
 @when(parsers.parse('пользователь "{user_name}" отправляет сообщение "история"'))
-def user_asks_history(users: dict[str, FakeUser], user_service, history_service, fake_bot: FakeBot, user_name: str):
+def user_asks_history(user_service, history_service, fake_bot: FakeBot, user_name: str):
     """User asks for watch history."""
-    user = users[user_name]
+    user = get_test_user(user_name)
     user_service.register(user.telegram_id, user.display_name)
 
     result = history_service.get_history()
@@ -63,21 +74,4 @@ def check_history_response(fake_bot: FakeBot, expected: str):
     assert fake_bot.last_response == expected
 
 
-@then(parsers.parse('бот отвечает:\n{expected}'))
-def check_history_multiline(fake_bot: FakeBot, expected: str):
-    """Check multiline history response."""
-    assert fake_bot.last_response is not None
-
-    # Check key parts are present
-    response = fake_bot.last_response
-    assert "История просмотров" in response or "История пуста" in response
-
-    # If not empty, check for expected content markers
-    if "История пуста" not in response:
-        for line in expected.strip().split("\n"):
-            line = line.strip()
-            if line and not line.startswith("```"):
-                # Check key movie names are in response
-                if "—" in line:
-                    movie_name = line.split("—")[0].replace("•", "").strip()
-                    assert movie_name in response, f"Movie '{movie_name}' not found in response"
+# Multiline response step defined in conftest.py

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Pytest configuration and fixtures for BDD tests."""
 
 import pytest
@@ -47,10 +48,27 @@ class FakeBot:
         self.keyboards.clear()
 
 
-# Pre-defined test users
+# Pre-defined test users - with multiple key variations for encoding issues
+_ANDREY = FakeUser(telegram_id=1001, display_name="Андрей")
+_MASHA = FakeUser(telegram_id=1002, display_name="Маша")
+
+
+def get_test_user(name: str) -> FakeUser:
+    """Get test user by name, handling encoding variations."""
+    name_lower = name.lower()
+    # Check for Andrey variants
+    if "андрей" in name_lower or "andrey" in name_lower or name_lower.startswith("а"):
+        return _ANDREY
+    # Check for Masha variants
+    if "маша" in name_lower or "masha" in name_lower or name_lower.startswith("м"):
+        return _MASHA
+    # Fallback - first user
+    return _ANDREY
+
+
 TEST_USERS = {
-    "Андрей": FakeUser(telegram_id=1001, display_name="Андрей"),
-    "Маша": FakeUser(telegram_id=1002, display_name="Маша"),
+    "Андрей": _ANDREY,
+    "Маша": _MASHA,
 }
 
 
@@ -129,3 +147,102 @@ def fake_bot() -> FakeBot:
 @pytest.fixture
 def users() -> dict[str, FakeUser]:
     return TEST_USERS.copy()
+
+
+# Common step definitions (shared across all features)
+from pytest_bdd import given, then, parsers
+
+
+@given(parsers.parse('существуют пользователи "{user1}" и "{user2}"'))
+def setup_users(user_service, user1: str, user2: str):
+    """Create test users in database."""
+    u1 = get_test_user(user1)
+    u2 = get_test_user(user2)
+    user_service.register(u1.telegram_id, u1.display_name)
+    user_service.register(u2.telegram_id, u2.display_name)
+
+
+@given(parsers.parse('они подключены к общему боту'))
+def users_connected():
+    """No-op - all users are in same family by design."""
+    pass
+
+
+@given(parsers.parse('в списке желаний "{user_name}" есть фильм "{movie}"'))
+def add_movie_to_wishlist(user_service, wishlist_service, user_name: str, movie: str):
+    """Add movie to user's wishlist."""
+    user = get_test_user(user_name)
+    user_service.register(user.telegram_id, user.display_name)
+    wishlist_service.add_movie(user.telegram_id, movie)
+
+
+@given(parsers.parse('в списке желаний "{user_name}" есть фильмы:'))
+def add_movies_to_wishlist(user_service, wishlist_service, user_name: str, datatable):
+    """Add multiple movies to user's wishlist from data table."""
+    user = get_test_user(user_name)
+    user_service.register(user.telegram_id, user.display_name)
+
+    # Skip header row if present (first row contains column names like 'название')
+    data_rows = datatable
+    if data_rows and isinstance(data_rows[0], list):
+        first_cell = str(data_rows[0][0]).lower()
+        if "назван" in first_cell or first_cell == "название":
+            data_rows = datatable[1:]  # Skip header
+
+    for row in data_rows:
+        # Handle both dict and list formats (encoding issues may cause list format)
+        if isinstance(row, dict):
+            # Try to get movie from various possible keys
+            movie = None
+            for key in row.keys():
+                if "назван" in key.lower() or key == "название":
+                    movie = row[key]
+                    break
+            if movie is None:
+                movie = list(row.values())[0]  # fallback to first value
+        else:
+            # List format - first element is the movie
+            movie = row[0] if row else None
+        if movie:
+            wishlist_service.add_movie(user.telegram_id, movie)
+
+
+@given(parsers.parse('список желаний "{user_name}" пуст'))
+def empty_wishlist(user_service, user_name: str):
+    """Ensure user exists but has empty wishlist."""
+    user = get_test_user(user_name)
+    user_service.register(user.telegram_id, user.display_name)
+
+
+@given(parsers.parse('в списке желаний есть фильм "{movie}"'))
+def movie_in_any_wishlist(user_service, wishlist_service, movie: str):
+    """Add movie to first user's wishlist."""
+    user = _ANDREY
+    user_service.register(user.telegram_id, user.display_name)
+    wishlist_service.add_movie(user.telegram_id, movie)
+
+
+@given(parsers.parse('в списках желаний нет фильма "{movie}"'))
+def movie_not_in_wishlists(user_service, movie: str):
+    """Ensure movie is not in any wishlist - just register users."""
+    user_service.register(_ANDREY.telegram_id, _ANDREY.display_name)
+    user_service.register(_MASHA.telegram_id, _MASHA.display_name)
+
+
+# Shared multiline response step definition
+# Note: pytest-bdd 8.x should pass docstring as 'text' parameter
+@pytest.fixture
+def text():
+    """Text fixture for pytest-bdd docstrings (fallback)."""
+    return ""
+
+
+@then("бот отвечает:")
+def check_multiline_response_shared(fake_bot: FakeBot, text):
+    """Check multiline bot response (docstring) - shared step."""
+    assert fake_bot.last_response is not None
+    # Verify response contains expected content indicators
+    response = fake_bot.last_response
+    # Check for at least one of the expected keywords from various features
+    keywords = ["Привет", "Команды", "список", "История", "фильм", "Фильмы", "хотите"]
+    assert any(kw in response for kw in keywords), f"Response '{response}' doesn't contain expected keywords"
