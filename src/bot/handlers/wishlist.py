@@ -6,8 +6,19 @@ from aiogram.types import Message
 
 from src.bot.messages import Messages
 from src.services import UserService, WishlistService
+from src.database.repositories import StateRepository
 
 router = Router()
+
+
+@router.message(F.text.lower().in_({"➕ добавить фильм", "добавить фильм"}))
+async def ask_movie_name(
+    message: Message, user_service: UserService, state_repo: StateRepository
+):
+    """Handle 'Добавить фильм' button - ask for movie name."""
+    user_service.register(message.from_user.id, message.from_user.full_name)
+    state_repo.set(f"awaiting_movie:{message.from_user.id}", "1")
+    await message.answer("🎬 Какой фильм хочешь посмотреть?")
 
 
 @router.message(F.text.lower().startswith("хочу посмотреть"))

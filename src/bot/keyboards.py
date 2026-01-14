@@ -29,6 +29,9 @@ def main_keyboard() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [
+                KeyboardButton(text="➕ Добавить фильм"),
+            ],
+            [
                 KeyboardButton(text="📋 Мой список"),
                 KeyboardButton(text="💑 Наш список"),
             ],
